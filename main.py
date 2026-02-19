@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Request
 import requests
+import os
 
 app = FastAPI()
 
-# Estos valores los completás con los de Meta
-VERIFY_TOKEN = "mi_token_secreto"
-ACCESS_TOKEN = "AQUI_VA_TU_TOKEN_DE_META"
-PHONE_ID = "AQUI_VA_TU_PHONE_ID"
+VERIFY_TOKEN = os.environ.get("VERIFY_TOKEN", "mi_token_secreto")
+ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN", "")
+PHONE_ID = os.environ.get("PHONE_ID", "")
 
 @app.get("/webhook")
 async def verificar_webhook(request: Request):
@@ -22,10 +22,17 @@ async def recibir_mensaje(request: Request):
         mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
         numero = mensaje["from"]
         texto = mensaje["text"]["body"]
-        responder(numero, f"Recibí tu mensaje: {texto}")
+        respuesta = procesar_mensaje(texto)
+        responder(numero, respuesta)
     except:
         pass
     return {"status": "ok"}
+
+def procesar_mensaje(texto: str) -> str:
+    texto_lower = texto.strip().lower()
+    if texto_lower in ["hola", "hola!", "hola?", "hi", "hey"]:
+        return "¡Hola! 👋 Bienvenido. ¿En qué te puedo ayudar?"
+    return f"Recibí tu mensaje: {texto}"
 
 def responder(numero, texto):
     url = f"https://graph.facebook.com/v22.0/{PHONE_ID}/messages"
