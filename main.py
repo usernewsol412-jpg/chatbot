@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import PlainTextResponse
 import requests
 import os
 
@@ -12,8 +13,8 @@ PHONE_ID = os.environ.get("PHONE_ID", "")
 async def verificar_webhook(request: Request):
     params = dict(request.query_params)
     if params.get("hub.verify_token") == VERIFY_TOKEN:
-        return int(params["hub.challenge"])
-    return {"error": "token inválido"}
+        return PlainTextResponse(content=params["hub.challenge"])
+    return PlainTextResponse(content="token inválido", status_code=403)
 
 @app.post("/webhook")
 async def recibir_mensaje(request: Request):
