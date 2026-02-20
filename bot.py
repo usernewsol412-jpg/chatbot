@@ -46,7 +46,7 @@ class Bot:
         if match:
             nombre = match.group(2).strip().capitalize()
             self.usuarios[numero] = nombre
-            cliente.enviar_mensaje(numero, f"¡Bienvenido, {nombre}! ¿En qué te puedo ayudar?")
+            cliente.enviar_mensaje(numero, f"¡Bienvenido, {nombre}! ¿En qué te puedo ayudar?\nEscriba menú  si desea ver todas las opciones.")
             return
 
         # Menú
