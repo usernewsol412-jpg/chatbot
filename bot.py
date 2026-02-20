@@ -1,11 +1,14 @@
 import re
 import os
+import time
+
+TIMEOUT_AGENTE = 30 #* 60  # 30 minutos (cambia este valor cuando quieras)
 
 
 class Bot:
     def __init__(self):
         self.usuarios = {}       # guarda el nombre de cada número
-        self.en_agente = set()   # números que están siendo atendidos por un agente
+        self.en_agente = {}      # numero -> timestamp de cuando fue derivado al agente
         self.agente = os.environ.get("AGENT_NUMBER", "")
 
     def procesar(self, texto: str, numero: str, cliente) -> None:
@@ -15,13 +18,19 @@ class Bot:
         if numero == self.agente and texto_lower == "fin":
             if self.en_agente:
                 numero_cliente = next(iter(self.en_agente))
-                self.en_agente.discard(numero_cliente)
+                del self.en_agente[numero_cliente]
                 cliente.enviar_mensaje(numero_cliente, "✅ La atención ha finalizado. ¡Gracias por contactarnos! Si necesitas algo más escribe *hola*.")
             return
 
-        # Si el cliente está en modo silencio, no responder
+        # Si el cliente está en modo agente, verificar timeout
         if numero in self.en_agente:
-            return
+            tiempo_en_agente = time.time() - self.en_agente[numero]
+            if tiempo_en_agente > TIMEOUT_AGENTE:
+                del self.en_agente[numero]
+                cliente.enviar_mensaje(numero, "✅ La sesión con el agente ha finalizado. Si necesitas algo más escribe *hola*.")
+                # Ya fue liberado, continuar procesando el mensaje normalmente
+            else:
+                return
 
         # Saludo
         if re.search(r"^(hola|hi|hey|buenas|buenos días|buenas tardes|buenas noches)[\s!?]*$", texto_lower):
@@ -79,7 +88,7 @@ class Bot:
         # Derivar a agente
         if texto_lower == "agente":
             nombre = self.usuarios.get(numero, "Cliente")
-            self.en_agente.add(numero)
+            self.en_agente[numero] = time.time()
             cliente.enviar_mensaje(numero, "👤 Un agente te contactará pronto. Por favor espera 😊")
             cliente.enviar_mensaje(self.agente, f"🔔 *Nueva conversación*\nCliente: *{nombre}*\nNúmero: +{numero}\n\nCuando termines escribe: *fin*")
             return

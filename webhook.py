@@ -25,12 +25,6 @@ async def recibir_mensaje(request: Request):
     data = await request.json()
     try:
         mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
-
-        # Ignorar mensajes con más de 30 segundos de antigüedad
-        timestamp = int(mensaje.get("timestamp", 0))
-        if time.time() - timestamp > 30:
-            return {"status": "ok"}
-
         numero = mensaje["from"]
         tipo = mensaje["type"]
 
@@ -39,6 +33,11 @@ async def recibir_mensaje(request: Request):
         elif tipo == "interactive":
             texto = mensaje["interactive"]["list_reply"]["id"]
         else:
+            return {"status": "ok"}
+
+        # Ignorar mensajes viejos solo si el cliente NO está esperando agente
+        timestamp = int(mensaje.get("timestamp", 0))
+        if time.time() - timestamp > 30 and numero not in bot.en_agente:
             return {"status": "ok"}
 
         bot.procesar(texto, numero, cliente)
