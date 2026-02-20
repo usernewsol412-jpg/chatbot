@@ -1,12 +1,27 @@
 import re
+import os
 
 
 class Bot:
     def __init__(self):
-        self.usuarios = {}  # guarda el nombre de cada número
+        self.usuarios = {}       # guarda el nombre de cada número
+        self.en_agente = set()   # números que están siendo atendidos por un agente
+        self.agente = os.environ.get("AGENT_NUMBER", "")
 
     def procesar(self, texto: str, numero: str, cliente) -> None:
         texto_lower = texto.strip().lower()
+
+        # Si el agente escribe "fin", libera al último cliente en cola
+        if numero == self.agente and texto_lower == "fin":
+            if self.en_agente:
+                numero_cliente = next(iter(self.en_agente))
+                self.en_agente.discard(numero_cliente)
+                cliente.enviar_mensaje(numero_cliente, "✅ La atención ha finalizado. ¡Gracias por contactarnos! Si necesitas algo más escribe *hola*.")
+            return
+
+        # Si el cliente está en modo silencio, no responder
+        if numero in self.en_agente:
+            return
 
         # Saludo
         if re.search(r"^(hola|hi|hey|buenas|buenos días|buenas tardes|buenas noches)[\s!?]*$", texto_lower):
@@ -60,8 +75,13 @@ class Bot:
         if texto_lower == "ubicacion":
             cliente.enviar_mensaje(numero, "📍 Estamos ubicados en...")
             return
+
+        # Derivar a agente
         if texto_lower == "agente":
-            cliente.enviar_mensaje(numero, "👤 En breve un agente te contactará.")
+            nombre = self.usuarios.get(numero, "Cliente")
+            self.en_agente.add(numero)
+            cliente.enviar_mensaje(numero, "👤 Un agente te contactará pronto. Por favor espera 😊")
+            cliente.enviar_mensaje(self.agente, f"🔔 *Nueva conversación*\nCliente: *{nombre}*\nNúmero: +{numero}\n\nCuando termines escribe: *fin*")
             return
 
         # Respuesta por defecto
