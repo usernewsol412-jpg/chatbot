@@ -24,5 +24,5 @@ class ERP:
             data = response.json()
             mensajes = [r["message"] for r in data.get("replies", [])]
             return mensajes
-        except Exception:
-            return ["❌ Error al conectar con el sistema. Intenta más tarde."]
+        except Exception as e:
+            return [f"❌ Error: {str(e)}"]
