@@ -3,6 +3,7 @@ from fastapi.responses import PlainTextResponse
 from bot import Bot
 from whatsapp import WhatsAppClient
 import os
+import time
 
 router = APIRouter()
 bot = Bot()
@@ -24,6 +25,12 @@ async def recibir_mensaje(request: Request):
     data = await request.json()
     try:
         mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
+
+        # Ignorar mensajes con más de 30 segundos de antigüedad
+        timestamp = int(mensaje.get("timestamp", 0))
+        if time.time() - timestamp > 30:
+            return {"status": "ok"}
+
         numero = mensaje["from"]
         tipo = mensaje["type"]
 
