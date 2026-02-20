@@ -1,6 +1,7 @@
 import re
 import os
 import time
+from erp import ERP
 
 TIMEOUT_AGENTE = 30 #* 60  # 30 minutos (cambia este valor cuando quieras)
 
@@ -10,6 +11,7 @@ class Bot:
         self.usuarios = {}       # guarda el nombre de cada número
         self.en_agente = {}      # numero -> timestamp de cuando fue derivado al agente
         self.agente = os.environ.get("AGENT_NUMBER", "")
+        self.erp = ERP()
 
     def procesar(self, texto: str, numero: str, cliente) -> None:
         texto_lower = texto.strip().lower()
@@ -93,7 +95,7 @@ class Bot:
             cliente.enviar_mensaje(self.agente, f"🔔 *Nueva conversación*\nCliente: *{nombre}*\nNúmero: +{numero}\n\nCuando termines escribe: *fin*")
             return
 
-        # Respuesta por defecto
-        nombre = self.usuarios.get(numero, "")
-        saludo = f"{nombre}, " if nombre else ""
-        cliente.enviar_mensaje(numero, f"{saludo}recibí tu mensaje: {texto}")
+        # Consultar al ERP
+        mensajes = self.erp.consultar(numero, texto)
+        for msg in mensajes:
+            cliente.enviar_mensaje(numero, msg)
