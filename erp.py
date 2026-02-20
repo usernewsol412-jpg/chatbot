@@ -21,8 +21,6 @@ class ERP:
         }
         try:
             response = requests.post(PHP_URL, json=payload, timeout=10)
-            data = response.json()
-            mensajes = [r["message"] for r in data.get("replies", [])]
-            return mensajes
+            return [f"DEBUG: {response.text[:500]}"]
         except Exception as e:
             return [f"❌ Error: {str(e)}"]
