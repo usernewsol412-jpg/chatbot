@@ -14,7 +14,7 @@ class ERP:
                 "sender": numero,
                 "message": mensaje,
                 "isGroup": False,
-                "ruleId": ""
+                "ruleId": "41"
             },
             "appPackageName": "com.whatsapp",
             "messengerPackageName": "com.whatsapp"
