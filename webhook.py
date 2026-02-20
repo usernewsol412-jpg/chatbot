@@ -25,9 +25,18 @@ async def recibir_mensaje(request: Request):
     try:
         mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
         numero = mensaje["from"]
-        texto = mensaje["text"]["body"]
-        respuesta = bot.procesar(texto, numero)
-        cliente.enviar_mensaje(numero, respuesta)
+        tipo = mensaje["type"]
+
+        if tipo == "text":
+            # Mensaje de texto normal
+            texto = mensaje["text"]["body"]
+        elif tipo == "interactive":
+            # El cliente tocó una opción del menú
+            texto = mensaje["interactive"]["list_reply"]["id"]
+        else:
+            return {"status": "ok"}
+
+        bot.procesar(texto, numero, cliente)
     except:
         pass
     return {"status": "ok"}

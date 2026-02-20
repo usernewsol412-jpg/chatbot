@@ -17,3 +17,31 @@ class WhatsAppClient:
             "text": {"body": texto}
         }
         requests.post(self.url, json=body, headers=headers)
+
+    def enviar_lista(self, numero: str, texto: str, boton: str, secciones: list):
+        """
+        secciones = [
+            {
+                "title": "Nombre de sección",
+                "rows": [
+                    {"id": "opcion_1", "title": "Opción 1", "description": "opcional"},
+                    {"id": "opcion_2", "title": "Opción 2"},
+                ]
+            }
+        ]
+        """
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        body = {
+            "messaging_product": "whatsapp",
+            "to": numero,
+            "type": "interactive",
+            "interactive": {
+                "type": "list",
+                "body": {"text": texto},
+                "action": {
+                    "button": boton,
+                    "sections": secciones
+                }
+            }
+        }
+        requests.post(self.url, json=body, headers=headers)
