@@ -22,16 +22,19 @@ async def verificar_webhook(request: Request):
 @router.post("/webhook")
 async def recibir_mensaje(request: Request):
     data = await request.json()
-    mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
-    numero = mensaje["from"]
-    tipo = mensaje["type"]
+    try:
+        mensaje = data["entry"][0]["changes"][0]["value"]["messages"][0]
+        numero = mensaje["from"]
+        tipo = mensaje["type"]
 
-    if tipo == "text":
-        texto = mensaje["text"]["body"]
-    elif tipo == "interactive":
-        texto = mensaje["interactive"]["list_reply"]["id"]
-    else:
-        return {"status": "ok"}
+        if tipo == "text":
+            texto = mensaje["text"]["body"]
+        elif tipo == "interactive":
+            texto = mensaje["interactive"]["list_reply"]["id"]
+        else:
+            return {"status": "ok"}
 
-    bot.procesar(texto, numero, cliente)
+        bot.procesar(texto, numero, cliente)
+    except KeyError:
+        pass
     return {"status": "ok"}
