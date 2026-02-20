@@ -10,6 +10,9 @@ class Bot:
 
         # Saludo
         if re.search(r"^(hola|hi|hey|buenas|buenos días|buenas tardes|buenas noches)[\s!?]*$", texto_lower):
+            if numero in self.usuarios:
+                nombre = self.usuarios[numero]
+                return f"¡Hola de nuevo, {nombre}! ¿En qué te puedo ayudar?"
             return "¡Hola! 👋 Brindame tu nombre para darte un servicio personalizado."
 
         # El cliente manda su nombre
